@@ -1,0 +1,8 @@
+.dockerignore
+target
+.git
+.gitignore
+diesel.toml
+Rocket.toml
+workspace.code-workspace
+.env
