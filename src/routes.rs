@@ -23,8 +23,11 @@ use crate::schema::token_challenge_translatables::dsl::*;
 use crate::routes::error::{RentError,ChallengeError};
 
 #[get("/")]
-pub fn index() -> &'static str {
-    "Hello, world!"
+pub fn index() -> JsonValue {
+    json!({
+        "name": env!("CARGO_PKG_NAME"),
+        "version": env!("CARGO_PKG_VERSION")
+    })
 }
 
 #[get("/api/bikes")]
