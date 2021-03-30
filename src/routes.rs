@@ -30,7 +30,7 @@ pub fn index() -> JsonValue {
     })
 }
 
-#[get("/api/bikes")]
+#[get("/bikes")]
 pub fn get_bikes(db: DbConn) -> Result<Json<Vec<BikeTranslatable>>,diesel::result::Error> {
     let data = bike_translatables
         .load::<BikeTranslatable>(&*db);
@@ -41,7 +41,7 @@ pub fn get_bikes(db: DbConn) -> Result<Json<Vec<BikeTranslatable>>,diesel::resul
     }
 }
 
-#[get("/api/rents?<as_of>")]
+#[get("/rents?<as_of>")]
 pub fn get_rents(db: DbConn, as_of: Option<String>) -> Result<Json<Vec<Rent>>,RentError> {
     let as_of = as_of.unwrap_or("1970-01-01T00:00:00.000Z".to_string());
     let as_of = DateTime::parse_from_rfc3339(&as_of)?;
@@ -55,7 +55,7 @@ pub fn get_rents(db: DbConn, as_of: Option<String>) -> Result<Json<Vec<Rent>>,Re
     Ok(Json(data))
 }
 
-#[post("/api/rents", data = "<booking>")]
+#[post("/rents", data = "<booking>")]
 pub fn book(db: DbConn, booking: Json<Booking>) -> Result<JsonValue,RentError> {
     let booking = &*booking;
     // TODO: Turing test
@@ -104,7 +104,7 @@ pub fn book(db: DbConn, booking: Json<Booking>) -> Result<JsonValue,RentError> {
     })
 }
 
-#[post("/api/rents/<token>/revoke")]
+#[post("/rents/<token>/revoke")]
 pub fn revoke_booking(db: DbConn, token: &RawStr) -> Result<(),RentError> {
     let parsed_token = ::uuid::Uuid::parse_str(token)?;
 
@@ -128,7 +128,7 @@ pub fn revoke_booking(db: DbConn, token: &RawStr) -> Result<(),RentError> {
 
 no_arg_sql_function!(RANDOM, (), "Represents the sql RANDOM() function");
 
-#[get("/api/challenges/<p_locale>/random")]
+#[get("/challenges/<p_locale>/random")]
 pub fn get_random_challenge(db: DbConn, p_locale: &RawStr) -> Result<JsonValue,ChallengeError> {
     lazy_static! {
         static ref LOCALE_REGEX: Regex = Regex::new(r"\w{2}-\w{2}").unwrap();
@@ -151,7 +151,7 @@ pub fn get_random_challenge(db: DbConn, p_locale: &RawStr) -> Result<JsonValue,C
     }))
 }
 
-#[post("/api/challenges/test", data = "<challenge_response>")]
+#[post("/challenges/test", data = "<challenge_response>")]
 pub fn test_challenge(db: DbConn, challenge_response: Json<ChallengeResponse>) -> Result<JsonValue,ChallengeError> {
 
     token_challenge_translatables
