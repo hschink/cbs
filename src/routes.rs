@@ -58,7 +58,6 @@ pub fn get_rents(db: DbConn, as_of: Option<String>) -> Result<Json<Vec<Rent>>,Re
 #[post("/rents", data = "<booking>")]
 pub fn book(db: DbConn, booking: Json<Booking>) -> Result<JsonValue,RentError> {
     let booking = &*booking;
-    // TODO: Turing test
 
     (&*db).transaction(|| {
         let overlapping_rent_count = rents
