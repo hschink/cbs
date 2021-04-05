@@ -1,5 +1,4 @@
 .dockerignore
-target
 .git
 .gitignore
 diesel.toml
