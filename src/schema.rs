@@ -28,6 +28,7 @@ table! {
         id -> Int4,
         token_id -> Int4,
         bike_id -> Int4,
+        created_at -> Timestamptz,
         start_timestamp -> Timestamptz,
         end_timestamp -> Timestamptz,
         revocation_timestamp -> Nullable<Timestamptz>,
@@ -55,6 +56,7 @@ table! {
     tokens (id) {
         id -> Int4,
         uuid -> Uuid,
+        created_at -> Timestamptz,
     }
 }
 
