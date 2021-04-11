@@ -29,6 +29,7 @@ pub struct Rent {
     pub id: i32,
     pub token_id: i32,
     pub bike_id: i32,
+    pub created_at: NaiveDateTime,
     pub start_timestamp: NaiveDateTime,
     pub end_timestamp: NaiveDateTime,
     pub revocation_timestamp: Option<NaiveDateTime>
@@ -39,7 +40,8 @@ pub struct Rent {
 #[derive(Debug)]
 pub struct Token {
     pub id: i32,
-    pub uuid: Uuid
+    pub uuid: Uuid,
+    pub created_at: NaiveDateTime
 }
 
 #[derive(Deserialize)]
