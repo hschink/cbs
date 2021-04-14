@@ -1,7 +1,8 @@
-
 use std::fmt;
 
 use rocket::Responder;
+
+use crate::mailer::errors::MailerError;
 
 // http://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/first-edition/error-handling.html#error-handling-with-a-custom-type
 
@@ -14,6 +15,8 @@ pub enum RentError {
     Database(String),
     #[response(status = 400)]
     Validation(String),
+    #[response(status = 400)]
+    MailError(String),
 }
 
 impl fmt::Display for RentError {
@@ -22,6 +25,7 @@ impl fmt::Display for RentError {
             RentError::Parse(ref err) => write!(f, "{}", err),
             RentError::Database(ref err) => write!(f, "{}", err),
             RentError::Validation(ref err) => write!(f, "{}", err),
+            RentError::MailError(ref err) => write!(f, "{}", err),
         }
     }
 }
@@ -41,6 +45,12 @@ impl From<diesel::result::Error> for RentError {
 impl From<uuid::ParseError> for RentError {
     fn from(err: uuid::ParseError) -> RentError {
         RentError::Database(err.to_string())
+    }
+}
+
+impl From<MailerError> for RentError {
+    fn from(err: MailerError) -> RentError {
+        RentError::MailError(err.to_string())
     }
 }
 

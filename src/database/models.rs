@@ -50,7 +50,9 @@ pub struct Booking {
     pub bike_id: i32,
     pub start_timestamp: NaiveDateTime,
     pub end_timestamp: NaiveDateTime,
-    pub encrypted_details: String
+    pub encrypted_details: String,
+    pub short_token: String,
+    pub email: Option<String>
 }
 
 #[derive(Queryable,Identifiable,Serialize)]

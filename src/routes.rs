@@ -19,6 +19,7 @@ use crate::schema::rents::dsl::*;
 use crate::schema::rent_details::dsl::*;
 use crate::schema::tokens::dsl::*;
 use crate::schema::token_challenge_translatables::dsl::*;
+use crate::mailer;
 
 use crate::routes::error::{RentError,ChallengeError};
 
@@ -96,6 +97,8 @@ pub fn book(db: DbConn, booking: Json<Booking>) -> Result<JsonValue,RentError> {
         insert_into(rent_details)
             .values(&rent_detail)
             .execute(&*db)?;
+
+        mailer::send_rent_mail(booking)?;
 
         Ok(json!({
             "token": booking.token
