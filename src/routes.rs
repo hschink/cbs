@@ -23,7 +23,7 @@ mod test {
     use rocket::http::Status;
 
     #[test]
-    fn hello_world() {
+    fn test_index() {
         let rocket = rocket::ignite().mount("/", routes![super::index]);
         let client = Client::new(rocket).expect("valid rocket instance");
         let mut response = client.get("/").dispatch();
