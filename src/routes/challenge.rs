@@ -13,7 +13,7 @@ use crate::database::models::*;
 use crate::schema::tokens::dsl::*;
 use crate::schema::token_challenge_translatables::dsl::*;
 
-use crate::routes::error::ChallengeError;
+use crate::routes::errors::ChallengeError;
 
 no_arg_sql_function!(RANDOM, (), "Represents the sql RANDOM() function");
 

@@ -15,7 +15,7 @@ use crate::schema::rent_details::dsl::*;
 use crate::schema::tokens::dsl::*;
 use crate::mailer;
 
-use crate::routes::error::RentError;
+use crate::routes::errors::RentError;
 
 #[get("/rents?<as_of>")]
 pub fn get_rents(db: DbConn, as_of: Option<String>) -> Result<Json<Vec<Rent>>,RentError> {
