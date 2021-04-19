@@ -5,13 +5,13 @@ use rocket_contrib::json::{Json,JsonValue};
 
 use chrono::prelude::{DateTime,Utc};
 
-use diesel::{Connection,RunQueryDsl,QueryDsl,BoolExpressionMethods,ExpressionMethods};
-use diesel::{insert_into,update};
+use diesel::{Connection,RunQueryDsl,QueryDsl,ExpressionMethods};
+use diesel::update;
 
 use crate::database::DbConn;
 use crate::database::models::*;
+use crate::database::daos::rent;
 use crate::schema::rents::dsl::*;
-use crate::schema::rent_details::dsl::*;
 use crate::schema::tokens::dsl::*;
 use crate::mailer;
 
@@ -35,50 +35,19 @@ pub fn get_rents(db: DbConn, as_of: Option<String>) -> Result<Json<Vec<Rent>>,Re
 pub fn book(db: DbConn, booking: Json<Booking>) -> Result<JsonValue,RentError> {
     let booking = &*booking;
 
-    (&*db).transaction(|| {
-        let overlapping_rent_count = rents
-                .filter(revocation_timestamp.is_null()
-                    .and(start_timestamp.between(booking.start_timestamp, booking.end_timestamp)
-                        .or(start_timestamp.between(booking.start_timestamp, booking.end_timestamp))
-                    )
-                )
-                .count()
-                .get_result::<i64>(&*db)?;
+    let result = rent::insert_booking(db, booking);
 
-        if overlapping_rent_count > 0 {
-            return Err(RentError::Validation(String::from("There is already a rent at the same period.")));
+    if result.is_ok() {
+        if booking.email.is_some() {
+            mailer::send_rent_mail(booking)?;
         }
-
-        let token = tokens
-            .filter(uuid.eq(booking.token))
-            .get_result::<Token>(&*db)?;
-
-        let rent = InsertRent {
-            token_id: token.id,
-            bike_id: booking.bike_id,
-            start_timestamp: booking.start_timestamp,
-            end_timestamp: booking.end_timestamp,
-        };
-
-        let inserted_rent = insert_into(rents)
-            .values(&rent)
-            .get_result::<Rent>(&*db)?;
-
-        let rent_detail = InsertRentDetail {
-            rent_id: inserted_rent.id,
-            encrypted_details: booking.encrypted_details.clone(),
-        };
-
-        insert_into(rent_details)
-            .values(&rent_detail)
-            .execute(&*db)?;
-
-        mailer::send_rent_mail(booking)?;
 
         Ok(json!({
             "token": booking.token
         }))
-    })
+    } else {
+        Err(result.err().unwrap())
+    }
 }
 
 #[post("/rents/<token>/revoke")]
@@ -101,4 +70,102 @@ pub fn revoke_booking(db: DbConn, token: &RawStr) -> Result<(),RentError> {
 
         Ok(())
     })
+}
+
+#[cfg(test)]
+mod test {
+    use mocktopus::mocking::Mockable;
+    use mocktopus::mocking::MockResult;
+
+    use lettre::transport::smtp::response::{Category,Code,Detail,Response,Severity};
+
+    use rocket;
+    use rocket::routes;
+    use rocket::local::Client;
+    use rocket::http::Status;
+
+    use crate::database::DbConn;
+    use crate::database::daos::rent;
+
+    use crate::mailer;
+
+    use crate::routes::errors::RentError;
+
+    #[test]
+    fn test_book_with_successful_database_insert_without_email() {
+        crate::database::test::setup();
+
+        let uuid = "00a791f1-68b8-457c-82d9-a060f48efbae";
+
+        rent::insert_booking.mock_safe(|_, _| {
+            MockResult::Return(Ok(()))
+        });
+
+        let rocket = rocket::ignite()
+            .attach(DbConn::fairing())
+            .mount("/", routes![super::book]);
+        let client = Client::new(rocket).expect("valid rocket instance");
+
+        let mut response = client.post("/rents")
+            .body(format!(r#"{{"token":"{}","bike_id": 1,"start_timestamp": "2021-04-19T00:00:00.000","end_timestamp": "2021-04-19T00:00:00.000","encrypted_details": "","short_token": "","email": null}}"#, uuid))
+            .dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.body_string(), Some(format!("{{\"token\":\"{}\"}}", uuid).to_string()));
+    }
+
+    #[test]
+    fn test_book_with_successful_database_insert_with_email() {
+        crate::database::test::setup();
+
+        let uuid = "00a791f1-68b8-457c-82d9-a060f48efbae";
+
+        rent::insert_booking.mock_safe(|_, _| {
+            MockResult::Return(Ok(()))
+        });
+
+        mailer::send_rent_mail.mock_safe(|b| {
+            assert_eq!(b.email.as_ref().unwrap(), "someone@somewhere.near");
+            MockResult::Return(Ok(Response {
+                code: Code {
+                    category: Category::Information,
+                    detail: Detail::Zero,
+                    severity: Severity::PositiveCompletion,
+                },
+                message: vec![],
+            }))
+        });
+
+        let rocket = rocket::ignite()
+            .attach(DbConn::fairing())
+            .mount("/", routes![super::book]);
+        let client = Client::new(rocket).expect("valid rocket instance");
+
+        let mut response = client.post("/rents")
+            .body(format!(r#"{{"token":"{}","bike_id": 1,"start_timestamp": "2021-04-19T00:00:00.000","end_timestamp": "2021-04-19T00:00:00.000","encrypted_details": "","short_token": "","email": "someone@somewhere.near"}}"#, uuid))
+            .dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.body_string(), Some(format!("{{\"token\":\"{}\"}}", uuid).to_string()));
+    }
+
+    #[test]
+    fn test_book_with_failed_database_insert() {
+        crate::database::test::setup();
+
+        let uuid = "00a791f1-68b8-457c-82d9-a060f48efbae";
+
+        rent::insert_booking.mock_safe(|_, _| {
+            MockResult::Return(Err(RentError::Validation("Bätsch".to_string())))
+        });
+
+        let rocket = rocket::ignite()
+            .attach(DbConn::fairing())
+            .mount("/", routes![super::book]);
+        let client = Client::new(rocket).expect("valid rocket instance");
+
+        let mut response = client.post("/rents")
+            .body(format!(r#"{{"token":"{}","bike_id": 1,"start_timestamp": "2021-04-19T00:00:00.000","end_timestamp": "2021-04-19T00:00:00.000","encrypted_details": "","short_token": "","email": null}}"#, uuid))
+            .dispatch();
+        assert_eq!(response.status(), Status::BadRequest);
+        assert_eq!(response.body_string(), Some("Bätsch".to_string()));
+    }
 }
