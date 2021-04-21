@@ -1,6 +1,8 @@
 #[cfg(test)]
 use mocktopus::macros::mockable;
 
+use chrono::NaiveDateTime;
+
 use diesel::{Connection,RunQueryDsl,QueryDsl,BoolExpressionMethods,ExpressionMethods};
 use diesel::insert_into;
 
@@ -11,6 +13,13 @@ use crate::schema::rent_details::dsl::*;
 use crate::schema::tokens::dsl::*;
 
 use crate::routes::errors::RentError;
+
+#[cfg_attr(test, mockable)]
+pub fn get_rents(db: DbConn, as_of: &NaiveDateTime) -> Result<Vec<Rent>, diesel::result::Error> {
+    rents.filter(end_timestamp.ge(&as_of))
+        .filter(revocation_timestamp.is_null())
+        .get_results::<Rent>(&*db)
+}
 
 #[cfg_attr(test, mockable)]
 pub fn insert_booking(db: DbConn, booking: &Booking) -> Result<(), RentError> {

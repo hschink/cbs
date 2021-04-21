@@ -23,10 +23,7 @@ pub fn get_rents(db: DbConn, as_of: Option<String>) -> Result<Json<Vec<Rent>>,Re
     let as_of = DateTime::parse_from_rfc3339(&as_of)?;
     let as_of = as_of.naive_utc();
 
-    let data = rents
-        .filter(end_timestamp.ge(&as_of))
-        .filter(revocation_timestamp.is_null())
-        .get_results::<Rent>(&*db)?;
+    let data = rent::get_rents(db, &as_of)?;
 
     Ok(Json(data))
 }
@@ -77,6 +74,7 @@ mod test {
     use mocktopus::mocking::Mockable;
     use mocktopus::mocking::MockResult;
 
+    use chrono::prelude::DateTime;
     use lettre::transport::smtp::response::{Category,Code,Detail,Response,Severity};
 
     use rocket;
@@ -90,6 +88,52 @@ mod test {
     use crate::mailer;
 
     use crate::routes::errors::RentError;
+
+    #[test]
+    fn test_get_rents_without_timestamp() {
+        crate::database::test::setup();
+
+        rent::get_rents.mock_safe(|_, as_of| {
+            let expected_as_of = DateTime::parse_from_rfc3339(&"1970-01-01T00:00:00.000Z".to_string()).unwrap();
+            let expected_as_of = expected_as_of.naive_utc();
+
+            assert_eq!(*as_of, expected_as_of);
+            MockResult::Return(Ok(vec![]))
+        });
+
+        let rocket = rocket::ignite()
+            .attach(DbConn::fairing())
+            .mount("/", routes![super::get_rents]);
+        let client = Client::new(rocket).expect("valid rocket instance");
+
+        let mut response = client.get("/rents").dispatch();
+
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.body_string(), Some("[]".to_string()));
+    }
+
+    #[test]
+    fn test_get_rents_with_timestamp() {
+        crate::database::test::setup();
+
+        rent::get_rents.mock_safe(|_, as_of| {
+            let expected_as_of = DateTime::parse_from_rfc3339(&"2021-04-21T00:00:00.000Z".to_string()).unwrap();
+            let expected_as_of = expected_as_of.naive_utc();
+
+            assert_eq!(*as_of, expected_as_of);
+            MockResult::Return(Ok(vec![]))
+        });
+
+        let rocket = rocket::ignite()
+            .attach(DbConn::fairing())
+            .mount("/", routes![super::get_rents]);
+        let client = Client::new(rocket).expect("valid rocket instance");
+
+        let mut response = client.get("/rents?as_of=2021-04-21T00:00:00.000Z").dispatch();
+
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.body_string(), Some("[]".to_string()));
+    }
 
     #[test]
     fn test_book_with_successful_database_insert_without_email() {
