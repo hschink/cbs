@@ -1,10 +1,11 @@
 #[cfg(test)]
 use mocktopus::macros::mockable;
 
-use chrono::NaiveDateTime;
+use ::uuid::Uuid;
+use chrono::{NaiveDateTime,Utc};
 
 use diesel::{Connection,RunQueryDsl,QueryDsl,BoolExpressionMethods,ExpressionMethods};
-use diesel::insert_into;
+use diesel::{insert_into,update};
 
 use crate::database::DbConn;
 use crate::database::models::{Booking,Rent,InsertRent,InsertRentDetail,Token};
@@ -59,6 +60,26 @@ pub fn insert_booking(db: DbConn, booking: &Booking) -> Result<(), RentError> {
 
         insert_into(rent_details)
             .values(&rent_detail)
+            .execute(&*db)?;
+
+        Ok(())
+    })
+}
+
+#[cfg_attr(test, mockable)]
+pub fn revoke_booking(db: DbConn, token: &Uuid) -> Result<(),RentError> {
+    (&*db).transaction(|| {
+        let token = tokens
+            .filter(uuid.eq(token))
+            .get_result::<Token>(&*db)?;
+
+        let booking = rents
+            .filter(revocation_timestamp.is_null())
+            .filter(token_id.eq(&token.id))
+            .get_result::<Rent>(&*db)?;
+
+        update(&booking)
+            .set(revocation_timestamp.eq(Utc::now().naive_utc()))
             .execute(&*db)?;
 
         Ok(())

@@ -3,16 +3,11 @@ use rocket::http::RawStr;
 use rocket_contrib::json;
 use rocket_contrib::json::{Json,JsonValue};
 
-use chrono::prelude::{DateTime,Utc};
-
-use diesel::{Connection,RunQueryDsl,QueryDsl,ExpressionMethods};
-use diesel::update;
+use chrono::prelude::DateTime;
 
 use crate::database::DbConn;
 use crate::database::models::*;
 use crate::database::daos::rent;
-use crate::schema::rents::dsl::*;
-use crate::schema::tokens::dsl::*;
 use crate::mailer;
 
 use crate::routes::errors::RentError;
@@ -51,22 +46,7 @@ pub fn book(db: DbConn, booking: Json<Booking>) -> Result<JsonValue,RentError> {
 pub fn revoke_booking(db: DbConn, token: &RawStr) -> Result<(),RentError> {
     let parsed_token = ::uuid::Uuid::parse_str(token)?;
 
-    (&*db).transaction(|| {
-        let token = tokens
-            .filter(uuid.eq(&parsed_token))
-            .get_result::<Token>(&*db)?;
-
-        let booking = rents
-            .filter(revocation_timestamp.is_null())
-            .filter(token_id.eq(&token.id))
-            .get_result::<Rent>(&*db)?;
-
-        update(&booking)
-            .set(revocation_timestamp.eq(Utc::now().naive_utc()))
-            .execute(&*db)?;
-
-        Ok(())
-    })
+    rent::revoke_booking(db, &parsed_token)
 }
 
 #[cfg(test)]
@@ -211,5 +191,25 @@ mod test {
             .dispatch();
         assert_eq!(response.status(), Status::BadRequest);
         assert_eq!(response.body_string(), Some("Bätsch".to_string()));
+    }
+
+    #[test]
+    fn test_revoke_booking() {
+        crate::database::test::setup();
+
+        let uuid = "00a791f1-68b8-457c-82d9-a060f48efbae";
+
+        rent::revoke_booking.mock_safe(move |_, token| {
+            assert_eq!(uuid, token.to_string());
+            MockResult::Return(Ok(()))
+        });
+
+        let rocket = rocket::ignite()
+            .attach(DbConn::fairing())
+            .mount("/", routes![super::revoke_booking]);
+        let client = Client::new(rocket).expect("valid rocket instance");
+
+        let response = client.post(format!("/rents/{}/revoke", uuid)).dispatch();
+        assert_eq!(response.status(), Status::Ok);
     }
 }
