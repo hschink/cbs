@@ -21,7 +21,7 @@ pub fn get_random_challenge(db: DbConn, p_locale: &RawStr) -> Result<JsonValue,C
         return Err(ChallengeError::Parse(String::from("No valid locale passed.")));
     }
 
-    let challenge = challenge::get_random_challenge(db, &p_locale.to_string())?;
+    let challenge = challenge::get_random_challenge(&db, &p_locale.to_string())?;
 
     Ok(json!({
         "token_challenge_id": challenge.token_challenge_id,
@@ -33,7 +33,7 @@ pub fn get_random_challenge(db: DbConn, p_locale: &RawStr) -> Result<JsonValue,C
 #[post("/challenges/test", data = "<challenge_response>")]
 pub fn test_challenge(db: DbConn, challenge_response: Json<ChallengeResponse>) -> Result<JsonValue,ChallengeError> {
 
-    let token = challenge::test_challenge(db, &challenge_response)?;
+    let token = challenge::test_challenge(&db, &challenge_response)?;
 
     Ok(json!({
         "token": token.uuid

@@ -66,10 +66,27 @@ pub struct Booking {
     pub email: Option<String>
 }
 
+#[derive(Queryable,Serialize)]
+#[derive(Debug)]
+pub struct TokenChallenge {
+    pub id: i32
+}
+
 #[derive(Queryable,Identifiable,Serialize)]
 #[derive(Debug)]
 pub struct TokenChallengeTranslatable {
     pub id: i32,
+    pub token_challenge_id: i32,
+    pub locale: String,
+    pub question: String,
+    pub answer_hash: String,
+    pub url: Option<String>
+}
+
+#[derive(Insertable,Deserialize)]
+#[table_name="token_challenge_translatables"]
+#[derive(Debug)]
+pub struct InsertTokenChallengeTranslatable {
     pub token_challenge_id: i32,
     pub locale: String,
     pub question: String,
