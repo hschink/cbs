@@ -7,7 +7,7 @@ use crate::database::daos::bike;
 
 #[get("/bikes")]
 pub fn get_bikes(db: DbConn) -> Result<Json<Vec<BikeTranslatable>>,diesel::result::Error> {
-    let data = bike::get_bikes(db);
+    let data = bike::get_bikes(&db);
 
     match data {
         Ok(v) => Ok(Json(v)),

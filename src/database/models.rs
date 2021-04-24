@@ -23,6 +23,17 @@ pub struct BikeTranslatable {
     pub url: Option<String>
 }
 
+#[derive(Insertable,Deserialize)]
+#[table_name="bike_translatables"]
+#[derive(Debug)]
+pub struct InsertBikeTranslatable {
+    pub bike_id: i32,
+    pub locale: String,
+    pub title: String,
+    pub description: Option<String>,
+    pub url: Option<String>
+}
+
 #[derive(Queryable,Identifiable,Serialize)]
 #[derive(Debug)]
 pub struct Rent {
