@@ -10,3 +10,6 @@ pub mod schema;
 pub mod database;
 
 pub mod mailer;
+
+#[cfg(test)]
+pub mod tests;

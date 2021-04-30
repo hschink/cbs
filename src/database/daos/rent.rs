@@ -16,14 +16,14 @@ use crate::schema::tokens::dsl::*;
 use crate::routes::errors::RentError;
 
 #[cfg_attr(test, mockable)]
-pub fn get_rents(db: DbConn, as_of: &NaiveDateTime) -> Result<Vec<Rent>, diesel::result::Error> {
+pub fn get_rents(db: &DbConn, as_of: &NaiveDateTime) -> Result<Vec<Rent>, diesel::result::Error> {
     rents.filter(end_timestamp.ge(&as_of))
         .filter(revocation_timestamp.is_null())
-        .get_results::<Rent>(&*db)
+        .get_results::<Rent>(&**db)
 }
 
 #[cfg_attr(test, mockable)]
-pub fn insert_booking(db: DbConn, booking: &Booking) -> Result<(), RentError> {
+pub fn insert_booking(db: &DbConn, booking: &Booking) -> Result<(), RentError> {
     (*db).transaction(|| {
         let overlapping_rent_count = rents
                 .filter(revocation_timestamp.is_null()
@@ -32,7 +32,7 @@ pub fn insert_booking(db: DbConn, booking: &Booking) -> Result<(), RentError> {
                     )
                 )
                 .count()
-                .get_result::<i64>(&*db)?;
+                .get_result::<i64>(&**db)?;
 
         if overlapping_rent_count > 0 {
             return Err(RentError::Validation(String::from("There is already a rent at the same period.")));
@@ -40,7 +40,7 @@ pub fn insert_booking(db: DbConn, booking: &Booking) -> Result<(), RentError> {
 
         let token = tokens
             .filter(uuid.eq(booking.token))
-            .get_result::<Token>(&*db)?;
+            .get_result::<Token>(&**db)?;
 
         let rent = InsertRent {
             token_id: token.id,
@@ -51,7 +51,7 @@ pub fn insert_booking(db: DbConn, booking: &Booking) -> Result<(), RentError> {
 
         let inserted_rent = insert_into(rents)
             .values(&rent)
-            .get_result::<Rent>(&*db)?;
+            .get_result::<Rent>(&**db)?;
 
         let rent_detail = InsertRentDetail {
             rent_id: inserted_rent.id,
@@ -60,27 +60,27 @@ pub fn insert_booking(db: DbConn, booking: &Booking) -> Result<(), RentError> {
 
         insert_into(rent_details)
             .values(&rent_detail)
-            .execute(&*db)?;
+            .execute(&**db)?;
 
         Ok(())
     })
 }
 
 #[cfg_attr(test, mockable)]
-pub fn revoke_booking(db: DbConn, token: &Uuid) -> Result<(),RentError> {
+pub fn revoke_booking(db: &DbConn, token: &Uuid) -> Result<(),RentError> {
     (&*db).transaction(|| {
         let token = tokens
             .filter(uuid.eq(token))
-            .get_result::<Token>(&*db)?;
+            .get_result::<Token>(&**db)?;
 
         let booking = rents
             .filter(revocation_timestamp.is_null())
             .filter(token_id.eq(&token.id))
-            .get_result::<Rent>(&*db)?;
+            .get_result::<Rent>(&**db)?;
 
         update(&booking)
             .set(revocation_timestamp.eq(Utc::now().naive_utc()))
-            .execute(&*db)?;
+            .execute(&**db)?;
 
         Ok(())
     })

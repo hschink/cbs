@@ -18,7 +18,7 @@ pub fn get_rents(db: DbConn, as_of: Option<String>) -> Result<Json<Vec<Rent>>,Re
     let as_of = DateTime::parse_from_rfc3339(&as_of)?;
     let as_of = as_of.naive_utc();
 
-    let data = rent::get_rents(db, &as_of)?;
+    let data = rent::get_rents(&db, &as_of)?;
 
     Ok(Json(data))
 }
@@ -27,7 +27,7 @@ pub fn get_rents(db: DbConn, as_of: Option<String>) -> Result<Json<Vec<Rent>>,Re
 pub fn book(db: DbConn, booking: Json<Booking>) -> Result<JsonValue,RentError> {
     let booking = &*booking;
 
-    let result = rent::insert_booking(db, booking);
+    let result = rent::insert_booking(&db, booking);
 
     if result.is_ok() {
         if booking.email.is_some() {
@@ -46,7 +46,7 @@ pub fn book(db: DbConn, booking: Json<Booking>) -> Result<JsonValue,RentError> {
 pub fn revoke_booking(db: DbConn, token: &RawStr) -> Result<(),RentError> {
     let parsed_token = ::uuid::Uuid::parse_str(token)?;
 
-    rent::revoke_booking(db, &parsed_token)
+    rent::revoke_booking(&db, &parsed_token)
 }
 
 #[cfg(test)]
