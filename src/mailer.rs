@@ -17,6 +17,7 @@ fn send_mail_from_backend(to: Vec<&str>, subject: String, body: String) -> Resul
     let mut message_builder = Message::builder();
 
     message_builder = message_builder.from(env::var("EMAIL_FROM").unwrap().parse().unwrap())
+        .reply_to(env::var("EMAIL_FROM").unwrap().parse().unwrap())
         .to(to[0].parse().unwrap())
         .subject(format!("[{}] {}", env::var("EMAIL_SUBJECT_PREFIX").unwrap(), subject));
 
