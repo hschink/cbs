@@ -30,9 +30,7 @@ pub fn book(db: DbConn, booking: Json<Booking>) -> Result<JsonValue,RentError> {
     let result = rent::insert_booking(&db, booking);
 
     if result.is_ok() {
-        if booking.email.is_some() {
-            mailer::send_rent_mail(booking)?;
-        }
+        mailer::send_rent_mail(booking)?;
 
         Ok(json!({
             "token": booking.token
