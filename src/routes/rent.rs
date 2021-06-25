@@ -123,6 +123,17 @@ mod test {
             MockResult::Return(Ok(()))
         });
 
+        mailer::send_rent_mail.mock_safe(|_| {
+            MockResult::Return(Ok(Response::new(
+                Code {
+                    category: Category::Information,
+                    detail: Detail::Zero,
+                    severity: Severity::PositiveCompletion,
+                },
+                vec![]
+            )))
+        });
+
         let rocket = rocket::ignite()
             .attach(DbConn::fairing())
             .mount("/", routes![super::book]);
