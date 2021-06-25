@@ -147,14 +147,14 @@ mod test {
 
         mailer::send_rent_mail.mock_safe(|b| {
             assert_eq!(b.email.as_ref().unwrap(), "someone@somewhere.near");
-            MockResult::Return(Ok(Response {
-                code: Code {
+            MockResult::Return(Ok(Response::new(
+                Code {
                     category: Category::Information,
                     detail: Detail::Zero,
                     severity: Severity::PositiveCompletion,
                 },
-                message: vec![],
-            }))
+                vec![]
+            )))
         });
 
         let rocket = rocket::ignite()
