@@ -10,7 +10,7 @@ use rocket::fairing::AdHoc;
 
 use cargobike_share_backend::database::{DbConn};
 use cargobike_share_backend::routes;
-use cargobike_share_backend::routes::{bike,rent,challenge};
+use cargobike_share_backend::routes::{bike,rent,challenge,supporter};
 use cargobike_share_backend::mailer;
 
 fn main() {
@@ -34,7 +34,8 @@ fn main() {
             rent::book,
             rent::revoke_booking,
             challenge::get_random_challenge,
-            challenge::test_challenge
+            challenge::test_challenge,
+            supporter::get_supporters,
         ])
         .launch();
 }

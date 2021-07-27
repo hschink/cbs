@@ -2,6 +2,7 @@ pub mod errors;
 pub mod bike;
 pub mod rent;
 pub mod challenge;
+pub mod supporter;
 
 use rocket::get;
 use rocket_contrib::json;

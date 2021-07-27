@@ -117,3 +117,17 @@ pub struct InsertRentDetail {
     pub rent_id: i32,
     pub encrypted_details: String,
 }
+
+#[derive(Queryable,Serialize)]
+#[derive(Debug)]
+pub struct SupporterWithTypeAndTranslatable {
+    pub id: i32,
+    pub supporter_type_title: String,
+    pub locale: String,
+    pub title: String,
+    pub description: Option<String>,
+    pub url: Option<String>,
+    pub logo_url: Option<String>,
+    pub logo_width: Option<i16>,
+    pub logo_height: Option<i16>,
+}
