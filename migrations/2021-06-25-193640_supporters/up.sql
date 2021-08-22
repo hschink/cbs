@@ -42,9 +42,10 @@ CREATE  TABLE   IF  NOT EXISTS  "supporter_translatables"
 ,   title                                                           varchar (  255 )                NOT NULL
 ,   "description"                                                   text                                NULL
 ,   "url"                                                           varchar ( 2048 )                    NULL
-,   "logo_url"                                                      varchar ( 2048 )                    NULL
+,   logo_url                                                        varchar ( 2048 )                    NULL
 ,   logo_width                                                      smallint                            NULL
 ,   logo_height                                                     smallint                            NULL
+,   logo_alt_text                                                   varchar (  100 )                    NULL
 
 ,   CONSTRAINT  "PK_supporter_translatables"                        PRIMARY KEY
     (

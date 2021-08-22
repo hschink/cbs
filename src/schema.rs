@@ -46,6 +46,7 @@ table! {
         logo_url -> Nullable<Varchar>,
         logo_width -> Nullable<Int2>,
         logo_height -> Nullable<Int2>,
+        logo_alt_text -> Nullable<Varchar>,
     }
 }
 

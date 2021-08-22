@@ -42,6 +42,7 @@ mod test {
                 logo_url: None,
                 logo_width: None,
                 logo_height: None,
+                logo_alt_text: None,
             },
             SupporterWithTypeAndTranslatable { id: 2,
                 supporter_type_title: "Software".to_string(),
@@ -52,6 +53,7 @@ mod test {
                 logo_url: Some("https//test.rs/test.png".to_string()),
                 logo_width: Some(500),
                 logo_height: Some(300),
+                logo_alt_text: Some("alt".to_string()),
             },
         ])));
 
@@ -62,7 +64,7 @@ mod test {
 
         let mut response = client.get("/supporters").dispatch();
         assert_eq!(response.status(), Status::Ok);
-        assert_eq!(response.body_string(), Some("[{\"id\":1,\"supporter_type_title\":\"Hardware\",\"locale\":\"de-DE\",\"title\":\"Test\",\"description\":null,\"url\":null,\"logo_url\":null,\"logo_width\":null,\"logo_height\":null},{\"id\":2,\"supporter_type_title\":\"Software\",\"locale\":\"de-DE\",\"title\":\"Test 2\",\"description\":\"Test description\",\"url\":\"https://test.rs/2\",\"logo_url\":\"https//test.rs/test.png\",\"logo_width\":500,\"logo_height\":300}]".to_string()));
+        assert_eq!(response.body_string(), Some("[{\"id\":1,\"supporter_type_title\":\"Hardware\",\"locale\":\"de-DE\",\"title\":\"Test\",\"description\":null,\"url\":null,\"logo_url\":null,\"logo_width\":null,\"logo_height\":null,\"logo_alt_text\":null},{\"id\":2,\"supporter_type_title\":\"Software\",\"locale\":\"de-DE\",\"title\":\"Test 2\",\"description\":\"Test description\",\"url\":\"https://test.rs/2\",\"logo_url\":\"https//test.rs/test.png\",\"logo_width\":500,\"logo_height\":300,\"logo_alt_text\":\"alt\"}]".to_string()));
     }
 
     #[test]

@@ -130,4 +130,5 @@ pub struct SupporterWithTypeAndTranslatable {
     pub logo_url: Option<String>,
     pub logo_width: Option<i16>,
     pub logo_height: Option<i16>,
+    pub logo_alt_text: Option<String>,
 }

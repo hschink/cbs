@@ -24,6 +24,7 @@ pub fn get_supporters(db: &DbConn) -> Result<Vec<SupporterWithTypeAndTranslatabl
             crate::schema::supporter_translatables::dsl::logo_url.nullable(),
             crate::schema::supporter_translatables::dsl::logo_width.nullable(),
             crate::schema::supporter_translatables::dsl::logo_height.nullable(),
+            crate::schema::supporter_translatables::dsl::logo_alt_text.nullable(),
         ))
         .load::<SupporterWithTypeAndTranslatable>(&**db)
 }
