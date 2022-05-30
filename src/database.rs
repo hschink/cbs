@@ -2,8 +2,7 @@ pub mod models;
 
 pub mod daos;
 
-use rocket_contrib::database;
-use rocket_contrib::databases::diesel;
+use rocket_sync_db_pools::{database, diesel};
 
 #[database("cbs")]
 pub struct DbConn(diesel::PgConnection);

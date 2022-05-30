@@ -5,11 +5,10 @@ pub mod challenge;
 pub mod supporter;
 
 use rocket::get;
-use rocket_contrib::json;
-use rocket_contrib::json::JsonValue;
+use rocket::serde::json::{Value,json};
 
 #[get("/")]
-pub fn index() -> JsonValue {
+pub fn index() -> Value {
     json!({
         "name": env!("CARGO_PKG_NAME"),
         "version": env!("CARGO_PKG_VERSION")
@@ -20,16 +19,20 @@ pub fn index() -> JsonValue {
 mod test {
     use rocket;
     use rocket::routes;
-    use rocket::local::Client;
     use rocket::http::Status;
+
+    use rocket::local::blocking::Client;
 
     #[test]
     fn test_index() {
-        let rocket = rocket::ignite().mount("/", routes![super::index]);
-        let client = Client::new(rocket).expect("valid rocket instance");
-        let mut response = client.get("/").dispatch();
+        let rocket = rocket::build().mount("/", routes![super::index]);
+
+        let client = Client::tracked(rocket).expect("valid rocket instance");
+
+        let response = client.get("/").dispatch();
+
         assert_eq!(response.status(), Status::Ok);
-        assert_eq!(response.body_string(), Some(format!("{{\"name\":\"{}\",\"version\":\"{}\"}}"
+        assert_eq!(response.into_string(), Some(format!("{{\"name\":\"{}\",\"version\":\"{}\"}}"
             , env!("CARGO_PKG_NAME")
             , env!("CARGO_PKG_VERSION")
         )));

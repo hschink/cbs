@@ -1,8 +1,5 @@
 pub mod errors;
 
-#[cfg(test)]
-use mocktopus::macros::mockable;
-
 use std::env;
 
 use lettre::transport::smtp::Error;
@@ -60,7 +57,6 @@ pub fn send_startup_mail() -> Result<Response, MailerError> {
     }
 }
 
-#[cfg_attr(test, mockable)]
 pub fn send_rent_mail(booking: &Booking) -> Result<Response, MailerError> {
     let start_date = booking.start_timestamp.format("%Y-%m-%d");
     let end_date = booking.end_timestamp.format("%Y-%m-%d");

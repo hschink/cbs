@@ -2,7 +2,7 @@
 name = "cargobike_share_backend"
 version = "0.3.0"
 authors = ["Hagen Schink <hagen.schink@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -15,25 +15,24 @@ name = "cargobike_share_backend"
 path = "src/main.rs"
 
 [dependencies]
-rocket = "0.4.6"
+rocket = { version = "0.5.1", features = ["json"] }
 log = "0.4"
-diesel = { version = "1.4.4", features = ["postgres", "uuid", "chrono"] }
-#diesel_migrations = { version = "1.4.0" }
+diesel = { version = "2.1.4", features = ["postgres", "uuid", "chrono"] }
+diesel_migrations = { version = "2.1.0" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 dotenv = "0.15.0"
 chrono = { version = "0.4", features = ["serde"] }
-uuid = { version = "0.6", features = ["serde"] }
+uuid = { version = "1.7.0", features = ["serde"] }
 regex = "1"
 lazy_static = "1"
-lettre = "0.10.0-rc.3"
-mocktopus = "0.7.0"
+lettre = "0.10.0-rc.7"
+mockall = "0.11.2"
+mockall_double = "0.3.0"
 
-[dependencies.rocket_contrib]
-version = "0.4.7"
-default-features = false
-features = ["diesel_postgres_pool", "json"]
+[dev-dependencies]
+serial_test = "*"
 
-[dependencies.rusqlite]
-version = "0.14.0"
-features = ["bundled"]
+[dependencies.rocket_sync_db_pools]
+version = "0.1.0"
+features = ["diesel_postgres_pool"]

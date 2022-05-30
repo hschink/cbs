@@ -12,7 +12,7 @@ pub struct Bike {
     pub id: i32
 }
 
-#[derive(Queryable,Serialize)]
+#[derive(Deserialize,Queryable,Serialize)]
 #[derive(Debug)]
 pub struct BikeTranslatable {
     pub id: i32,
@@ -24,7 +24,7 @@ pub struct BikeTranslatable {
 }
 
 #[derive(Insertable,Deserialize)]
-#[table_name="bike_translatables"]
+#[diesel(table_name = bike_translatables)]
 #[derive(Debug)]
 pub struct InsertBikeTranslatable {
     pub bike_id: i32,
@@ -34,7 +34,7 @@ pub struct InsertBikeTranslatable {
     pub url: Option<String>
 }
 
-#[derive(Queryable,Identifiable,Serialize)]
+#[derive(Queryable,Identifiable,Serialize,Deserialize)]
 #[derive(Debug)]
 pub struct Rent {
     pub id: i32,
@@ -47,7 +47,7 @@ pub struct Rent {
 }
 
 #[derive(Queryable,Identifiable,Serialize)]
-#[table_name="tokens"]
+#[diesel(table_name = tokens)]
 #[derive(Debug)]
 pub struct Token {
     pub id: i32,
@@ -55,7 +55,9 @@ pub struct Token {
     pub created_at: NaiveDateTime
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize,Deserialize)]
+#[derive(Debug)]
+#[derive(Clone)]
 pub struct Booking {
     pub token: Uuid,
     pub bike_id: i32,
@@ -84,7 +86,7 @@ pub struct TokenChallengeTranslatable {
 }
 
 #[derive(Insertable,Deserialize)]
-#[table_name="token_challenge_translatables"]
+#[diesel(table_name = token_challenge_translatables)]
 #[derive(Debug)]
 pub struct InsertTokenChallengeTranslatable {
     pub token_challenge_id: i32,
@@ -95,13 +97,15 @@ pub struct InsertTokenChallengeTranslatable {
 }
 
 #[derive(Deserialize)]
+#[derive(Debug)]
+#[derive(Clone)]
 pub struct ChallengeResponse {
     pub token_challenge_id: i32,
     pub answer_hash: String
 }
 
 #[derive(Insertable,Deserialize)]
-#[table_name="rents"]
+#[diesel(table_name = rents)]
 #[derive(Debug)]
 pub struct InsertRent {
     pub token_id: i32,
@@ -111,7 +115,7 @@ pub struct InsertRent {
 }
 
 #[derive(Insertable,Deserialize)]
-#[table_name="rent_details"]
+#[diesel(table_name = rent_details)]
 #[derive(Debug)]
 pub struct InsertRentDetail {
     pub rent_id: i32,
